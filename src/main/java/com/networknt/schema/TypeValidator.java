@@ -75,7 +75,7 @@ public class TypeValidator extends BaseJsonValidator implements JsonValidator {
             }
             if (config.isTypeLoose()) {
                 // if typeLoose is true, everything can be a size 1 array
-                if (schemaType == JsonType.ARRAY) {
+                if ( schemaType == JsonType.ARRAY) {
                     return true;
                 }
                 if (nodeType == JsonType.STRING) {

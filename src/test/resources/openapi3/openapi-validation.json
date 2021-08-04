@@ -1,0 +1,706 @@
+{
+  "openapi": "3.0.3",
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "info": {
+    "description": "This is the microservices to manage lenses",
+    "version": "1.0.0-SNAPSHOT",
+    "title": "Lens Management Microservices - OpenAPI 3.0",
+    "termsOfService": "http://swagger.io/terms/",
+    "contact": {
+      "email": "wasae.shoaib@yotascale.com"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    }
+  },
+  "tags": [
+    {
+      "name": "lens",
+      "description": "Lens Operations"
+    }
+  ],
+  "paths": {
+    "/lens": {
+      "delete": {
+        "tags": [
+          "lens"
+        ],
+        "summary": "Delete lens",
+        "description": "Delete lens",
+        "operationId": "deleteLens",
+        "parameters": [
+          {
+            "name": "tenantUUID",
+            "in": "header",
+            "description": "The tenant UUID for which lens will be deleted",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 32,
+              "maxLength": 32,
+              "pattern": "[0-9a-f]{32}"
+            }
+          },
+          {
+            "name": "lensNodeID",
+            "in": "path",
+            "description": "Lens version node ID of the Lens",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Lens Root Node definitions",
+                  "allOf": [
+                    {
+                      "$ref": "#/paths/~1lens/put/requestBody/content/application~1json/schema"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "rootNodeUUID": {
+                          "description": "The uuid for a Lens Node, map to 'node_id' in the lenses table with the node type as 'ys_lens'",
+                          "nullable": true,
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The input lensNodeID cannot be found"
+          },
+          "500": {
+            "description": "General Errors Payloads"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "lens"
+        ],
+        "summary": "Update lens Node",
+        "description": "Update lens Node",
+        "operationId": "updateLensNode",
+        "parameters": [
+          {
+            "name": "tenantUUID",
+            "in": "header",
+            "description": "The tenant UUID for which lens node will be updated",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 32,
+              "maxLength": 32,
+              "pattern": "[0-9a-f]{32}"
+            }
+          },
+          {
+            "name": "lensNodeID",
+            "in": "path",
+            "description": "Lens node ID of the Lens",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Lens Node defined in json format",
+          "content": {
+            "application/json": {
+              "schema": {
+                "description": "Lens Allocation definitions",
+                "type": "object",
+                "nullable": true,
+                "properties": {
+                  "nodeUUID": {
+                    "description": "The uuid for a Lens Node, map to 'node_id' in the lenses table. If it is rootNode, it will be the 'node_id' for the 'ys_lens_version\" node",
+                    "type": "string",
+                    "nullable": true,
+                    "format": "uuid"
+                  },
+                  "name": {
+                    "description": "The name for a Lens Node, map to 'node_name' in the lenses table",
+                    "type": "string"
+                  },
+                  "parentId": {
+                    "description": "The uuid for the parent node of this lens Node, map to 'parent_id' in the lenses table",
+                    "type": "string",
+                    "nullable": true,
+                    "format": "uuid"
+                  },
+                  "version": {
+                    "description": "The version for  a lens node, map to 'version' in the lenses table. Only required when the kind is 'ys_lens_version'",
+                    "type": "string"
+                  },
+                  "nodeType": {
+                    "description": "The kind or type for a Lens Node, map to 'node_type' in the lenses table",
+                    "type": "string"
+                  },
+                  "desc": {
+                    "description": "The description for a Lens Node, map to 'node_desc' in the lenses table",
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "nullable": true,
+                    "description": "The metadata in json format for a lensmanagement node, map to the 'metadata' in lenses table"
+                  },
+                  "allocRules": {
+                    "description": "The allocation rules in json format for a lens node, map to the 'allocation_rules' in lenses table",
+                    "x-swagger-router-model": "com.yotascale.gemini.microservices.model.AllocationRule",
+                    "nullable": true,
+                    "properties": {
+                      "condition": {
+                        "type": "string",
+                        "description": "Add a condition for multiple rules. Required for multiple rules",
+                        "maxLength": 48,
+                        "enum": [
+                          "AND",
+                          "OR"
+                        ]
+                      },
+                      "rules": {
+                        "type": "array",
+                        "items": {
+                          "description": "Single allocation rule",
+                          "type": "object",
+                          "nullable": true,
+                          "title": "rule",
+                          "properties": {
+                            "attribute": {
+                              "type": "string",
+                              "description": "Name of the attribute",
+                              "maxLength": 64
+                            },
+                            "tag": {
+                              "type": "string",
+                              "description": "Name of the tag",
+                              "maxLength": 64
+                            },
+                            "operator": {
+                              "type": "string",
+                              "description": "Operator between attribute and values. For 'account', 'service' and 'region' only 'Equal', 'Not Equal', 'IN' and 'Not In'  operators are supported. If operator is 'IN' or 'Not In' then value must be an array e.g ['value 1', 'value 2', ...].",
+                              "maxLength": 64,
+                              "enum": [
+                                "Equal",
+                                "Not Equal",
+                                "Like",
+                                "Is Not Null",
+                                "In"
+                              ]
+                            },
+                            "values": {
+                              "description": "Value against attrubute/tag. For operator 'Is Not Null' this field is not required otherwise it is required.",
+                              "type": "object"
+                            },
+                            "group": {
+                              "description": "For sub-query or new group, you have to define condition and rules array again in it (see example).",
+                              "$ref": "#/paths/~1lens/put/requestBody/content/application~1json/schema/properties/allocRules"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "childrenNodes": {
+                    "description": "The list of Lens Node",
+                    "type": "array",
+                    "nullable": true,
+                    "items": {
+                      "$ref": "#/components/schemas/LensNode"
+                    }
+                  }
+                }
+              },
+              "example": {
+                "metadata": {
+                  "forcasting": true
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/paths/~1lens/put/requestBody/content/application~1json/schema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The input lensNodeID cannot be found"
+          },
+          "500": {
+            "description": "General Errors Payloads"
+          }
+        }
+      }
+    },
+    "/shadow-lens": {
+      "put": {
+        "tags": [
+          "shadow-lens"
+        ],
+        "summary": "Update Shadow Lens",
+        "description": "Update a shadow on customer's business context",
+        "operationId": "updateShadowLens",
+        "parameters": [
+          {
+            "name": "tenantUUID",
+            "in": "header",
+            "description": "UUID of the tenant for which shadow lens is to be created",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "nodeUUID",
+            "in": "query",
+            "description": "UUID of the classic BC node",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Node ID of the created shadow lensmanagement"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "YotascaleAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "shadow-lens"
+        ],
+        "summary": "Sync Shadow Lens",
+        "description": "Sync a classic shadow on customer's business context with Gemini",
+        "operationId": "syncShadowLens",
+        "parameters": [
+          {
+            "name": "tenantUUID",
+            "in": "header",
+            "description": "UUID of the tenant for which shadow lensmanagement is to be created",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Node ID of the created shadow lensmanagement"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "YotascaleAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "shadow-lens"
+        ],
+        "summary": "Delete shadow lens",
+        "description": "Delete shadow lens",
+        "operationId": "deleteShadowLens",
+        "parameters": [
+          {
+            "name": "tenantUUID",
+            "in": "header",
+            "description": "The tenant UUID for which lenses will be loaded from yaml or json format",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 32,
+              "maxLength": 32,
+              "pattern": "[0-9a-f]{32}"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The list of Lens",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/paths/~1lens/delete/responses/200/content/application~1json/schema"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The input lensNodId cannot be found"
+          },
+          "500": {
+            "description": "General Errors Payloads"
+          }
+        }
+      }
+    },
+    "/load-lens": {
+      "post": {
+        "tags": [
+          "lens-loader"
+        ],
+        "summary": "Load Lenses defined in yaml or json format",
+        "description": "Load Lenses defined in yaml or json format",
+        "operationId": "loadLens",
+        "parameters": [
+          {
+            "name": "tenantUUID",
+            "in": "header",
+            "description": "The tenant UUID for which lenses will be loaded from yaml or json format",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "lensData": {
+                    "type": "string",
+                    "format": "byte"
+                  }
+                }
+              },
+              "encoding": {
+                "lensData": {
+                  "contentType": "application/json",
+                  "explode": true
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Node ID of the created shadow lensmanagement"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/download-lens": {
+      "get": {
+        "tags": [
+          "lens-downloader"
+        ],
+        "summary": "Download Lens in yaml or json format",
+        "description": "Download Lens in yaml or json format",
+        "operationId": "downloadLens",
+        "parameters": [
+          {
+            "name": "tenantUUID",
+            "in": "header",
+            "description": "The tenant UUID for which lenses will be loaded from yaml or json format",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lensNodeId",
+            "in": "query",
+            "description": "the selected lensNode UUID which will be downloaded in yaml or json format",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/paths/~1lens/delete/responses/200/content/application~1json/schema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The input lensNodId cannot be found"
+          },
+          "500": {
+            "description": "General Errors Payloads"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AllocationRule": {
+        "description": "The allocation rules in json format for a lens node, map to the 'allocation_rules' in lenses table",
+        "x-swagger-router-model": "com.yotascale.gemini.microservices.model.AllocationRule",
+        "nullable": true,
+        "properties": {
+          "condition": {
+            "type": "string",
+            "description": "Add a condition for multiple rules. Required for multiple rules",
+            "maxLength": 48,
+            "enum": [
+              "AND",
+              "OR"
+            ]
+          },
+          "rules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Rule"
+            }
+          }
+        },
+        "propertyNames": {
+          "enum": [
+            "condition",
+            "rules"
+          ]
+        }
+      },
+      "Lenses": {
+        "description": "The list of Lens",
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Lens"
+        }
+      },
+      "LensNode": {
+        "description": "Lens Allocation definitions",
+        "type": "object",
+        "nullable": true,
+        "properties": {
+          "nodeUUID": {
+            "description": "The uuid for a Lens Node, map to 'node_id' in the lenses table. If it is rootNode, it will be the 'node_id' for the 'ys_lens_version\" node",
+            "type": "string",
+            "nullable": true,
+            "format": "uuid"
+          },
+          "name": {
+            "description": "The name for a Lens Node, map to 'node_name' in the lenses table",
+            "type": "string"
+          },
+          "parentId": {
+            "description": "The uuid for the parent node of this lens Node, map to 'parent_id' in the lenses table",
+            "type": "string",
+            "nullable": true,
+            "format": "uuid"
+          },
+          "version": {
+            "description": "The version for  a lens node, map to 'version' in the lenses table. Only required when the kind is 'ys_lens_version'",
+            "type": "string"
+          },
+          "nodeType": {
+            "description": "The kind or type for a Lens Node, map to 'node_type' in the lenses table",
+            "type": "string"
+          },
+          "desc": {
+            "description": "The description for a Lens Node, map to 'node_desc' in the lenses table",
+            "type": "string",
+            "nullable": true
+          },
+          "metadata": {
+            "description": "The metadata in json format for a lensmanagement node, map to the 'metadata' in lenses table",
+            "nullable": true,
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object"
+              }
+            ]
+          },
+          "allocRules": {
+            "$ref": "#/components/schemas/AllocationRule"
+          },
+          "childrenNodes": {
+            "$ref": "#/components/schemas/LensNodes"
+          }
+        }
+      },
+      "LensNodes": {
+        "description": "The list of Lens Node",
+        "type": "array",
+        "nullable": true,
+        "items": {
+          "$ref": "#/components/schemas/LensNode"
+        }
+      },
+      "Rule": {
+        "description": "Single allocation rule",
+        "type": "object",
+        "nullable": true,
+        "title": "rule",
+        "properties": {
+          "attribute": {
+            "type": "string",
+            "description": "Name of the attribute",
+            "nullable": true,
+            "maxLength": 64
+          },
+          "tag": {
+            "type": "string",
+            "description": "Name of the tag",
+            "nullable": true,
+            "maxLength": 64
+          },
+          "operator": {
+            "type": "string",
+            "description": "Operator between attribute and values. For 'account', 'service' and 'region' only 'Equal', 'Not Equal', 'IN' and 'Not In'  operators are supported. If operator is 'IN' or 'Not In' then value must be an array e.g ['value 1', 'value 2', ...].",
+            "maxLength": 64,
+            "nullable": true,
+            "enum": [
+              "Equal",
+              "Not Equal",
+              "Like",
+              "Is Not Null",
+              "In"
+            ]
+          },
+          "values": {
+            "description": "Value against attrubute/tag. For operator 'Is Not Null' this field is not required otherwise it is required.",
+            "nullable": true,
+            "oneOf": [
+              {
+                "type": "array",
+                "nullable": true,
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "string",
+                "nullable": true
+              }
+            ]
+          },
+          "group": {
+            "description": "For sub-query or new group, you have to define condition and rules array again in it (see example).",
+            "$ref": "#/components/schemas/AllocationRule"
+          }
+        },
+        "propertyNames": {
+          "enum": [
+            "attribute",
+            "tag",
+            "operator",
+            "values",
+            "group"
+          ]
+        }
+      },
+      "Lens": {
+        "description": "Lens Root Node definitions",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/LensNode"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "rootNodeUUID": {
+                "description": "The uuid for a Lens Node, map to 'node_id' in the lenses table with the node type as 'ys_lens'",
+                "type": "string",
+                "format": "uuid",
+                "nullable": true
+              }
+            },
+            "propertyNames": {
+              "enum": [
+                "rootNodeUUID",
+                "nodeUUID",
+                "name",
+                "parentId",
+                "version",
+                "nodeType",
+                "desc",
+                "metadata",
+                "allocRules",
+                "childrenNodes"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "securitySchemes": {
+      "YotascaleAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-KEY"
+      }
+    }
+  }
+}

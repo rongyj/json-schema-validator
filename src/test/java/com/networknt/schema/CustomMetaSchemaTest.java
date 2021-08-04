@@ -121,11 +121,20 @@ public class CustomMetaSchemaTest {
         final JsonSchema schema = validatorFactory.getSchema("{\n" +
                 "  \"$schema\":\n" +
                 "    \"https://github.com/networknt/json-schema-validator/tests/schemas/example01\",\n" +
-                "  \"enum\": [\"foo\", \"bar\"],\n" +
-                "  \"enumNames\": [\"Foo !\", \"Bar !\"]\n" +
+                "        \"description\": \"Lens Allocation definitions\",\n" +
+                "        \"type\": \"object\",\n" +
+                "        \"properties\": {\n" +
+                "          \"nodeUUID\": {\n" +
+                "            \"description\": \"Test\",\n" +
+                "            \"type\": \"string\",\n" +
+                "            \"format\": \"uuid\"\n" +
+                "          } }"+
+                //"  \"enum\": [\"foo\", \"bar\"],\n" +
+                //"  \"enumNames\": [\"Foo !\", \"Bar !\"]\n" +
                 "}");
 
-        Set<ValidationMessage> messages = schema.validate(objectMapper.readTree("\"foo\""));
+        JsonNode data = objectMapper.readTree("{\"nodeUUI\":null}");
+        Set<ValidationMessage> messages = schema.validate(data);
         assertEquals(1, messages.size());
 
         ValidationMessage message = messages.iterator().next();

@@ -5,13 +5,18 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.undertow.Undertow;
+import io.undertow.server.handlers.resource.ClassPathResourceManager;
 import io.undertow.server.handlers.resource.FileResourceManager;
+import io.undertow.server.handlers.resource.PathResource;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -19,13 +24,13 @@ import static io.undertow.Handlers.resource;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-public class OpenAPI30JsonSchemaTest {
+public class Issue428Test {
     protected ObjectMapper mapper = new ObjectMapper();
     protected JsonSchemaFactory validatorFactory = JsonSchemaFactory
-            .builder(JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V4)).objectMapper(mapper).build();
+            .builder(JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V201909)).objectMapper(mapper).build();
     protected static Undertow server = null;
 
-    public OpenAPI30JsonSchemaTest() {
+    public Issue428Test() {
     }
 
     @BeforeClass
@@ -53,17 +58,41 @@ public class OpenAPI30JsonSchemaTest {
     }
 
     private void runTestFile(String testCaseFile) throws Exception {
-        final URI testCaseFileUri = URI.create("classpath:" + testCaseFile);
-        InputStream in = Thread.currentThread().getContextClassLoader()
-                .getResourceAsStream(testCaseFile);
-        ArrayNode testCases = mapper.readValue(in, ArrayNode.class);
+        final URI testCaseFileUri = URI.create("classpath:"+testCaseFile);
+        //InputStream in = Thread.currentThread().getContextClassLoader()
+         //       .getResourceAsStream(testCaseFile);
+        JsonNode testCases= mapper.readTree(new File(Thread.currentThread().getContextClassLoader().getResource(testCaseFile).getPath()));
+        //JsonNode testCases = mapper.readTree(in);
 
+        JsonNode schemasNodeComponenets = testCases.at("/components");
+        JsonNode schemasNodeLens = testCases.at("/components/schemas/Lens");
+        SchemaValidatorsConfig schemaValidatorsConfig = new SchemaValidatorsConfig();
+        schemaValidatorsConfig.setHandleNullableField(false);
+        //schemaValidatorsConfig.setJavaSemantics(true);
+        schemaValidatorsConfig.setTypeLoose(false);
+        //schemaValidatorsConfig.setOpenAPI3StyleDiscriminators(true);
+        ((ObjectNode)schemasNodeLens).set("components", schemasNodeComponenets);
+
+        //JsonSchema schema = validatorFactory.getSchema(testCaseFileUri, schemasNodeLens, schemaValidatorsConfig);
+
+        JsonSchema schema = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V201909).getSchema(schemasNodeLens, schemaValidatorsConfig);
+
+        //schema.initializeValidators();
+        //schema.schemaPath ="#/LensNode/properties";
+        JsonNode data = mapper.readTree(new File("src/test/resources/data/klarna.json"));
+        //Set<ValidationMessage> validationMessages = schema.validate(data,schemasNode,"/LensNode");
+        //ValidationResult validationResult = schema.walk(data.get("Lens"),true);
+        List<ValidationMessage> errors = new ArrayList<ValidationMessage>(schema.validate(data));
+
+        Assert.assertTrue(errors.size()==5);
+
+        /*
         for (int j = 0; j < testCases.size(); j++) {
             try {
                 JsonNode testCase = testCases.get(j);
                 SchemaValidatorsConfig config = new SchemaValidatorsConfig();
 
-                ArrayNode testNodes = (ArrayNode) testCase.get("tests");
+                ArrayNode testNodes = (ArrayNode) testCase.get("components");
                 for (int i = 0; i < testNodes.size(); i++) {
                     JsonNode test = testNodes.get(i);
                     System.out.println("=== " + test.get("description"));
@@ -113,10 +142,13 @@ public class OpenAPI30JsonSchemaTest {
                 throw new IllegalStateException(String.format("Current schema should not be invalid: %s", testCaseFile), e);
             }
         }
+ */
+
+
     }
 
     @Test
     public void testDiscriminatorMapping() throws Exception {
-        runTestFile("openapi3/discriminator.json");
+        runTestFile("openapi3/openapi-validation.json");
     }
 }
