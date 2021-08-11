@@ -17,8 +17,6 @@
 package com.networknt.schema;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.JsonNodeType;
-import com.fasterxml.jackson.databind.node.TextNode;
 import com.networknt.schema.utils.JsonNodeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
