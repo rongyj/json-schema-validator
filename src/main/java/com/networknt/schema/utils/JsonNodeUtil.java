@@ -44,6 +44,7 @@ public class JsonNodeUtil {
         while (iterator.hasNext()){
             JsonNode oneOfTypeNode = (JsonNode) iterator.next();
             JsonNode typeTextNode = oneOfTypeNode.get(TYPE);
+
             if(typeTextNode != null && typeTextNode.asText().equals(nodeType.toString())) //If the nodeType is oneOf the type defined in the oneOf , return true
                 return true;
         }
