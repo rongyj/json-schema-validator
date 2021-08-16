@@ -165,7 +165,6 @@ public class OneOfValidator extends BaseJsonValidator implements JsonValidator {
             if(JsonNodeUtil.matchOneOfTypeNode(schemaNode,TypeFactory.getValueNodeType(node, super.config)) && !JsonNodeUtil.equalsToSchemaType(node,schema,config) && !(JsonType.UNKNOWN.equals(JsonNodeUtil.getSchemaJsonType(schema)))){
                 continue;
             }
-
             if (!state.isWalkEnabled()) {
                 schemaErrors = schema.validate(node, rootNode, at);
             } else {
