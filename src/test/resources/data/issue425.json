@@ -1,0 +1,90 @@
+[
+  {
+    "description": "Not nullable array test",
+    "schema": {
+      "properties": {
+        "condition": {
+          "type": "string",
+          "description": "Add a condition for multiple rules. Required for multiple rules",
+          "maxLength": 48,
+          "enum": [
+            "AND",
+            "OR"
+          ]
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "dependentSchema": {
+        "condition": {
+          "properties": {
+            "rules": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+     },
+    "tests":[
+      {
+        "description": "Array teat with null value",
+        "data": {
+          "condition": "OR",
+          "rules": null
+        }
+      }
+    ]
+  },
+  {
+    "description": "Nuallable oneOf validation",
+    "schema": {
+      "properties": {
+        "values": {
+          "description": "desc",
+          "nullable": true,
+          "oneOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    "tests": [
+      {
+        "description": "oneOf with single string",
+        "data": {
+          "values": "test"
+        },
+        "valid": true
+      },
+      {
+        "description": "oneOf with invalid type",
+        "data": {
+          "values": 3
+        },
+        "valid": true
+      },
+      {
+        "description": "oneOf with single string array",
+        "data": {
+          "values": [ "test1"]
+        },
+        "valid": true
+      }
+    ]
+  }
+]
